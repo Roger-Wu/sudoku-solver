@@ -17,7 +17,7 @@ class Solution(object):
         contMax = self.cellContentMax
 
         self.unsolvedCellCoords = []
-        self.possCellSols = [ [ [i for i in xrange(contMin, contMax+1) ] for w in xrange(rowLen) ] for h in xrange(colLen) ]
+        self.possCellSols = [ [ range(contMin, contMax+1) for w in xrange(rowLen) ] for h in xrange(colLen) ]
         # [ [ [1~9], ..9.. ], ..9.. ]
 
         for rowIdx in xrange(len(board)):
@@ -25,9 +25,9 @@ class Solution(object):
                 if board[rowIdx][colIdx] == contUnsol:
                     self.unsolvedCellCoords.append( (rowIdx,colIdx) )
                 else:
-                    self.updataPossCellSols(self.possCellSols, (rowIdx, colIdx), board[rowIdx][colIdx])
+                    self.updatePossCellSols(self.possCellSols, (rowIdx, colIdx), board[rowIdx][colIdx])
 
-    def updataPossCellSols(self, possCellSols, ansCoord, ansValue):
+    def updatePossCellSols(self, possCellSols, ansCoord, ansValue):
         if len(ansCoord) != 2:
             return
         ansRowCoord, ansColCoord = ansCoord
@@ -54,9 +54,9 @@ class Solution(object):
         # update the cell
         possCellSols[ansRowCoord][ansColCoord] = [ansValue]
 
-    def sortUnsolvedCellCoords(self):
-        # if a cell has less possible solutions, it will be in the front
-        self.unsolvedCellCoords.sort(key=lambda coord: len(self.possCellSols[coord[0]][coord[1]]))
+    def sortUnsolvedCellCoords(self, unsolvedCellCoords, possCellSols):
+        # cells having less possible solutions will be in the front
+        unsolvedCellCoords.sort(key=lambda coord: len(possCellSols[coord[0]][coord[1]]))
 
     def solveAnyCell(self, solvingBoard, unsolvedCellCoords, possCellSols):
         if len(unsolvedCellCoords) == 0:
@@ -69,70 +69,57 @@ class Solution(object):
                 return "someCellNoPossibleSol"
             elif possCellSolsCount == 1:
                 ans = possCellSols[rowCoord][colCoord][0]
-                self.updataPossCellSols(possCellSols, (rowCoord, colCoord), ans)
+                self.updatePossCellSols(possCellSols, (rowCoord, colCoord), ans)
                 solvingBoard[rowCoord][colCoord] = ans
                 unsolvedCellCoords.pop(i)
                 return "cellSolved"
-            # else:
-            #     continue
 
         return "needGuess"
 
-    def guessAndSolve(self, solvingBoard, unsolvedCellCoords, possCellSols):
-        # guessResult = "notSolved"
-        for i in xrange(len(unsolvedCellCoords)):
-            rowCoord, colCoord = unsolvedCellCoords[i]
-            for possCellSol in possCellSols[rowCoord][colCoord]:
-                tempSolvingBoard = deepcopy(solvingBoard)
-                tempUnsolvedCellCoords = deepcopy(unsolvedCellCoords)
-                tempPossCellSols = deepcopy(possCellSols)
+    def guessAndSolveRecursively(self, solvingBoard, unsolvedCellCoords, possCellSols):
+        self.sortUnsolvedCellCoords(unsolvedCellCoords, possCellSols)
 
-                guessAns = possCellSol
+        rowCoord, colCoord = unsolvedCellCoords[0]
+        for possCellSol in possCellSols[rowCoord][colCoord]:
+            tempSolvingBoard = deepcopy(solvingBoard)
+            tempUnsolvedCellCoords = deepcopy(unsolvedCellCoords)
+            tempPossCellSols = deepcopy(possCellSols)
 
-                tempSolvingBoard[rowCoord][colCoord] = guessAns
-                tempUnsolvedCellCoords.pop(i)
-                self.updataPossCellSols(tempPossCellSols, (rowCoord, colCoord), guessAns)
+            guessAns = possCellSol
 
-                while True:
-                    result = self.solveAnyCell(tempSolvingBoard, tempUnsolvedCellCoords, tempPossCellSols)
-                    if result == "cellSolved":
-                        continue
-                    else:
-                        break
-                    # elif result == "boardSolved":
-                    #     break
-                    # elif result == "needGuess":
-                    #     break
-                    # else:
-                    #     print "error: result not expected in guessAndSolve"
-                    #     break
+            tempSolvingBoard[rowCoord][colCoord] = guessAns
+            tempUnsolvedCellCoords.pop(0)
+            self.updatePossCellSols(tempPossCellSols, (rowCoord, colCoord), guessAns)
 
-                if result == "boardSolved":
+            while True:
+                result = self.solveAnyCell(tempSolvingBoard, tempUnsolvedCellCoords, tempPossCellSols)
+                if result == "cellSolved":
+                    continue
+                elif result == "boardSolved":
                     # guessResult = "correctGuess"
                     self.solvingBoard = tempSolvingBoard
                     self.unsolvedCellCoords = tempUnsolvedCellCoords
                     self.possCellSols = tempPossCellSols
                     return "boardSolved"
-                # elif result == "someCellNoPossibleSol":
-                #     guessResult = "wrongGuess"
-                #     continue
-                # elif result == "needGuess":
-                #     guessResult = "stillNeedGuess"
-                #     continue
-                # else:
-                #     print "error: result not expected in guessAndSolve"
-                #     guessResult = "error"
-                #     break
+                elif result == "someCellNoPossibleSol":
+                    # guessResult = "wrongGuess"
+                    break # try the next possible cell solution
+                elif result == "needGuess":
+                    guessResult = self.guessAndSolveRecursively(tempSolvingBoard, tempUnsolvedCellCoords, tempPossCellSols)
+                    if guessResult == "boardSolved":
+                        return "boardSolved"
+                    elif guessResult == "boardNotSolvable":
+                        # previous guess is wrong
+                        break # try the next possible cell solution
 
-        return "needGuessInGuess"
-        # TODO: guess in a guess
+        # come here if can't reach "boardSolved"
+        return "boardNotSolvable"
 
     def solveSudoku(self, board):
         """
         :type board: List[List[str]]
         :rtype: void Do not return anything, modify board in-place instead.
         """
-
         # change strBoard to intBoard
         self.originalBoard = [[self.charToInt(char) for char in row] for row in board]
         self.solvingBoard = [[self.charToInt(char) for char in row] for row in board]
@@ -147,7 +134,7 @@ class Solution(object):
         self.cellContentMax = 9
 
         self.initSolvingUtils()
-        self.sortUnsolvedCellCoords()
+        self.sortUnsolvedCellCoords(self.unsolvedCellCoords, self.possCellSols)
 
         while True:
             result = self.solveAnyCell(self.solvingBoard, self.unsolvedCellCoords, self.possCellSols)
@@ -156,11 +143,8 @@ class Solution(object):
             elif result == "boardSolved":
                 break
             elif result == "needGuess":
-                self.sortUnsolvedCellCoords()
-                guessResult = self.guessAndSolve(self.solvingBoard, self.unsolvedCellCoords, self.possCellSols)
-                break
-            else:
-                print "error: result not expected"
+                self.sortUnsolvedCellCoords(self.unsolvedCellCoords, self.possCellSols)
+                guessResult = self.guessAndSolveRecursively(self.solvingBoard, self.unsolvedCellCoords, self.possCellSols)
                 break
 
         for i in xrange(len(board)):
