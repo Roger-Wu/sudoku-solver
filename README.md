@@ -1,9 +1,8 @@
 # sudoku-solver
-A sudoku solver for [LeetCode 37. Sudoku Solver](https://leetcode.com/problems/sudoku-solver/)
 
-Runtime: 52 ms, which beats 98.14 % of python submissions.
+A sudoku solver for [LeetCode 37. Sudoku Solver](https://leetcode.com/problems/sudoku-solver/) written in Python 3.
 
-`37_Sudoku_Solver_set.py` and `37_Sudoku_Solver_list.py` are written in Python 2, and can be directly submitted to LeetCode.
-`SudokuSolver.py` is written in Python 3.
+## Result on LeetCode
 
-Note: using list for psbl_digits runs faster than using set.
+Runtime: 40 ms, faster than 99.51% of Python3 online submissions for Sudoku Solver.
+* Memory Usage: 13.1 MB, less than 65.46% of Python3 online submissions for Sudoku Solver.
