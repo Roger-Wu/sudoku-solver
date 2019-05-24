@@ -181,7 +181,7 @@ if __name__ == '__main__':
         solver.print_board(board)
         print('{} solution found in {} seconds.'.format(len(solutions), elapsed_time))
         solver.print_solutions(solutions)
-        print()
+        print('------------------------------------------------------------')
 
     solve_and_print(board_0)
     solve_and_print(board_1)
