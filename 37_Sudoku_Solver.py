@@ -5,7 +5,7 @@ Result on LeetCode:
 * Runtime: 40 ms, faster than 99.51% of Python3 online submissions for Sudoku Solver.
 * Memory Usage: 13.1 MB, less than 65.46% of Python3 online submissions for Sudoku Solver.
 
-Algorithm: backtracking (dfs) with an optimal order
+Algorithm: backtracking (dfs) in an optimal order
 1. Keep track of candidates of each cell.
 2. Find the cell with fewest candidates. Fill the cell with one of the candidates. Update the candidates of other cells.
 3. Repeat step 2 until solved. Or if the board is not solvable anymore (there's any cell that is empty but has no candidates), undo step 2 and try the next candidate.
